@@ -1,0 +1,33 @@
+version: '3.12'
+
+services:
+
+  database:
+    container_name: database
+    image: postgres:latest
+    volumes:
+      - database_volume:/var/lib/postgresql/data/
+    env_file:
+      - ./src/.db_env
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: pg_isready -U postgres
+
+
+  backend:
+    container_name: backend
+    build: ./src
+    command: bash -c "entrypoint.sh"
+    ports:
+      - '8000:8000'
+    depends_on:
+      database:
+        condition: "service_healthy"
+    env_file:
+      - ./src/.dev_env
+      - ./src/.db_env
+
+
+volumes:
+  database_volume:
